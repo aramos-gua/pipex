@@ -17,10 +17,31 @@
 
 int	main(void)
 {
-	char	*values[] = {"ping", "-c 3","google.com", NULL};
-	char	*env[] = {NULL};
+	int	pid;
 
-	execve("/bin/ping", values, env);
-	printf("Success\n");
+	pid = fork();
+	if (pid == -1)
+		return (1);
+	if (pid == 0)
+	{
+		//child process
+		int		file;
+		int		file2;
+		int		err;
+		//char	*arr[] = {"ping", "-c 3", "google.com", NULL};
+		//char	*env[] = {NULL};
+
+		file = open("pingResults.txt", O_WRONLY | O_CREAT, 0777);
+		if (file == -1)
+			return (2);
+		printf("The fd to pingResults.txt is %d\n", file);
+		file2 = dup2(file, STDOUT_FILENO);
+		printf("The duplicated fd: %d\n", file2);
+		close(file);
+
+		err = execlp("ping", "ping", "-c 1", "google.com", NULL);
+		if (err == -1)
+			return (3);
+	}
 	return (0);
 }
