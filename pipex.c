@@ -16,46 +16,54 @@
 #include <sys/wait.h>
 #include <string.h>
 
-int	main(void)
+//ping process
+void	first_command(int *fd)
 {
-	int		pid;
-	int		len;
-	int		fd[2];
-	int		len_p;
-	char	str[200];
-	char	str_p[200];
+	char	*arr[] = {"ping", "-c", "5", "google.com", NULL};
+	char	*env[] = {NULL};
+
+	close(fd[0]);
+	dup2(fd[1], STDOUT_FILENO);
+	close(fd[1]);
+	execve("/bin/ping", arr, env);
+}
+
+void	second_command(int *fd)
+{
+	char	*arr[] = {"grep", "rtt", NULL};
+	char	*env[] = {NULL};
+
+	close(fd[1]);
+	dup2(fd[0], STDIN_FILENO);
+	close(fd[0]);
+	execve("/bin/grep", arr, env);
+}
+
+int	main(int argc, char **argv)
+{
+	int	fd[2];
+	int	pid1;
+	int	pid2;
 
 	if (pipe(fd) == -1)
 		return (1);
-	pid = fork();
-	if (pid == -1)
+	pid1 = fork();
+	if (pid1 == -1)
 		return (2);
-	if (pid == 0)
+	if (pid1 == 0)
 	{
-		//child process
-		close(fd[0]);
-		printf("Input string: ");
-		fgets(str, 200, stdin);
-		str[strlen(str) - 1] = '\0';
-		len = strlen(str) + 1;
-		if (write(fd[1], &len, sizeof(int)) == -1)
-			return (4);
-		if (write(fd[1], str, sizeof(char) * len) == -1)
-			return (3);
-		close(fd[1]);
+		first_command(fd);
 	}
-	else
+	pid2 = fork();
+	if (pid2 == -1)
+		return (3);
+	if (pid2 == 0)
 	{
-		//parent process
-		close(fd[1]);
-
-		if (read(fd[0], &len_p, sizeof(int)) == -1)
-			return (5);
-		if (read(fd[0], str_p, sizeof(char) * len_p) == -1)
-			return (6);
-		printf("Received %s \n", str_p);
-		close(fd[0]);
-		wait(NULL);
+		second_command(fd);
 	}
+	close(fd[0]);
+	close(fd[1]);
+	waitpid(pid1, NULL, 0);
+	waitpid(pid2, NULL, 0);
 	return (0);
 }
