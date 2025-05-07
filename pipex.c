@@ -49,9 +49,13 @@ int	main(int argc, char **argv)
 	pipex.prev_fd = -1;
 	pipex.envp = envp;
 	if (pipex.infile < 0 || pipex.outfile < 0)
-		perror("File Error");
-	if (pipe(fd) == -1)
-		perror("Pipe Error");
+		perror("File Error-52");
+	while (i < pipex.cmd_count
+	{
+		pid = fork();
+		if (pid == -1)
+			perror("Fork Error-57")
+	}
 	pid1 = fork();
 	if (pid1 == -1)
 		return (2);
