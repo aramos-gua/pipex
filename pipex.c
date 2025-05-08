@@ -12,27 +12,51 @@
 
 #include "pipex.h"
 
-//ping process
-void	first_command()
+void	child_process(int i, char **argv, t_pipex *pipex)
 {
-	close(fd[0]);
-	dup2(infile_fd, STDIN_FILENO);
-	dup2(fd[1], STDOUT_FILENO);
-	close(fd[1]);
-	close(infile_fd);
-	close(outfile_fd);
-	excecute_commands(argv, envp);
+	if (i == 0)
+	{
+		dup2(pipex->infile, STDIN_FILENO);
+		dup2(pipex->pipe_fd[1], STDOUT_FILENO);
+	}
+	else if (i == pipex->cmd_count - 1)
+	{
+		dup2(pipex->prev_fd, STDIN_FILENO);
+		dup2(pipex->outfile, STDOUT_FILENO);
+	}
+	else
+	{
+		dup2(pipex->prev_fd, STDIN_FILENO);
+		dup2(pipex->pipe_fd[1], STDOUT_FILENO);
+	}
+	close(pipex->pipe_fd[0]);
+	close(pipex->pipe_fd[1]);
+	if (pipex->prev_fd != -1)
+		close(prefix->prev_fd);
+	close(pipex->infile);
+	close(pipex->outfile);
+	excecute_command(argv[2 + i], pipex);
 }
 
-void	second_command()
+void	excecute_command(char *cmd_str, t_pipex *pipex)
 {
-	char	*arr[] = {"grep", "rtt", NULL};
-	char	*env[] = {NULL};
+	char	**args;
+	char	*path;
 
-	close(fd[1]);
-	dup2(fd[0], STDIN_FILENO);
-	close(fd[0]);
-	execve("/bin/grep", arr, env);
+	args = ft_split(cmd_str, ' ');
+	if (!args || !args[0])
+		perror("Command Parse Error");
+	path = get_command_path(args[0], pipex->envp);
+	if (!path)
+	{
+		perror("Command Not Found");
+		free_split(args);
+	}
+	execve(path, args, pipex->envp);
+	perror("execve Error");
+	free(path);
+	free_split(args);
+	exit(1);
 }
 
 int	main(int argc, char **argv)
@@ -49,26 +73,23 @@ int	main(int argc, char **argv)
 	pipex.prev_fd = -1;
 	pipex.envp = envp;
 	if (pipex.infile < 0 || pipex.outfile < 0)
-		perror("File Error-52");
-	while (i < pipex.cmd_count
+		perror("File Error");
+	while (i < pipex.cmd_count)
 	{
+		if (i < pipex.cmd_count - 1 && pipe(pipex.pipe_fd) == -1)
+			perror("Pipe Error");
 		pid = fork();
 		if (pid == -1)
-			perror("Fork Error-57")
+			perror("Fork Error");
+		if (pid == 0)
+			child_process(i, argv, &pipex);
+		if (pipex.prev_fd != -1)
+			close(pipex.prev_fd);
+		if (i < pipex.cmd_count - 1)
+			pipex_prev_fd = pipex.pipe_fd[0];
+		close(pipex.pipe_fd[1]);
 	}
-	pid1 = fork();
-	if (pid1 == -1)
-		return (2);
-	if (pid1 == 0)
-		first_command(argc, argv, fd);
-	pid2 = fork();
-	if (pid2 == -1)
-		return (3);
-	if (pid2 == 0)
-		second_command(fd);
-	close(fd[0]);
-	close(fd[1]);
-	waitpid(pid1, NULL, 0);
-	waitpid(pid2, NULL, 0);
+	while (wait(NULL) > 0);
 	return (0);
 }
+

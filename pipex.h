@@ -30,5 +30,7 @@ typedef struct s_pipex
 	char	**env;
 }	t_pipex;
 
+void	child_process(int i, char **argv, t_pipex *pipex);
+void	excecute_command(char *cmd_str, t_pipex *pipex);
 
 #endif
