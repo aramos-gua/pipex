@@ -19,6 +19,7 @@
 # include <string.h>
 # include <stdio.h>
 # include <sys/wait.h>
+# include "./libft/libft.h"
 
 typedef struct s_pipex
 {
@@ -32,5 +33,6 @@ typedef struct s_pipex
 
 void	child_process(int i, char **argv, t_pipex *pipex);
 void	excecute_command(char *cmd_str, t_pipex *pipex);
+void	free_split(char **arr);
 
 #endif

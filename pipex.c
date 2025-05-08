@@ -32,10 +32,51 @@ void	child_process(int i, char **argv, t_pipex *pipex)
 	close(pipex->pipe_fd[0]);
 	close(pipex->pipe_fd[1]);
 	if (pipex->prev_fd != -1)
-		close(prefix->prev_fd);
+		close(pipex->prev_fd);
 	close(pipex->infile);
 	close(pipex->outfile);
 	excecute_command(argv[2 + i], pipex);
+}
+
+char	*get_command_path(char *cmd, char **env)
+{
+	char	**paths;
+	char	*path_env;
+	char	*full_path;
+	int		i;
+
+	i = 0;
+	while (env[i])
+	{
+		if (ft_strncmp(env[i], "PATH=", 5) == 0)
+		{
+			path_env = env[i] + 5;
+			break ;
+		}
+	}
+	if (!path_env)
+		return (NULL);
+	paths = ft_split(path_env, ':');
+	if (!paths)
+		return (NULL);
+	i = 0;
+	while (paths[i])
+	{
+		full_path = malloc(ft_strlen(paths[i]) + ft_strlen(cmd) + 2);
+		if (!full_path)
+			continue ;
+		strcpy(full_path, paths[i]);
+		strncat(full_path, "/");
+		strncat(full_path, cmd);
+		if (access(full_path, X_OK) == 0)
+		{
+			free_split(paths);
+			return (full_path);
+		}
+		free(full_path);
+	}
+	free_split(paths);
+	return (NULL);
 }
 
 void	excecute_command(char *cmd_str, t_pipex *pipex)
@@ -46,32 +87,45 @@ void	excecute_command(char *cmd_str, t_pipex *pipex)
 	args = ft_split(cmd_str, ' ');
 	if (!args || !args[0])
 		perror("Command Parse Error");
-	path = get_command_path(args[0], pipex->envp);
+	path = get_command_path(args[0], pipex->env);
 	if (!path)
 	{
 		perror("Command Not Found");
 		free_split(args);
 	}
-	execve(path, args, pipex->envp);
+	execve(path, args, pipex->env);
 	perror("execve Error");
 	free(path);
 	free_split(args);
 	exit(1);
 }
 
-int	main(int argc, char **argv)
+void	free_split(char **arr)
+{
+	int	i;
+
+	i = 0;
+	if (!arr)
+		return ;
+	while (arr[i])
+		free(arr[i]);
+	free(arr);
+}
+
+int	main(int argc, char **argv, char **env)
 {
 	t_pipex	pipex;
 	pid_t	pid;
 	int		i;
 
+	i = 0;
 	if (argc < 5)
-		return (("Usage: ./pipex infile cmd1 cmd2 outfile"), 1);
+		perror("Usage: ./pipex infile cmd1 cmd2 outfile");
 	pipex.infile = open(argv[1], O_RDONLY); 
 	pipex.outfile = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	pipex.cmd_count = argc - 3;
 	pipex.prev_fd = -1;
-	pipex.envp = envp;
+	pipex.env = env;
 	if (pipex.infile < 0 || pipex.outfile < 0)
 		perror("File Error");
 	while (i < pipex.cmd_count)
@@ -86,7 +140,7 @@ int	main(int argc, char **argv)
 		if (pipex.prev_fd != -1)
 			close(pipex.prev_fd);
 		if (i < pipex.cmd_count - 1)
-			pipex_prev_fd = pipex.pipe_fd[0];
+			pipex.prev_fd = pipex.pipe_fd[0];
 		close(pipex.pipe_fd[1]);
 	}
 	while (wait(NULL) > 0);

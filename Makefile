@@ -30,7 +30,7 @@ CFLAGS = -Wall -Werror -Wextra
 LIBFTDIR = ./libft
 
 # Target names
-NAME = fdf
+NAME = pipex
 LIBFT = $(LIBFTDIR)/libft.a
 
 # Files
