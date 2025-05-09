@@ -55,19 +55,18 @@ int	main(void)
 				if (i != j)
 					close(pipes[j][0]);
 				if (i + 1 != j)
-					close(pipes[j][i]);
+					close(pipes[j][1]);
 				j++;
 			}
 			int	x;
-			
-			if (read(pipes[i][0], &x, sizeof(int) == -1))
+			if (read(pipes[i][0], &x, sizeof(int)) == -1)
 			{
 				printf("Error reading\n");
 				return (1);
 			}
 			printf("(%d) Got %d\n", i, x);
 			x++;
-			if (write(pipes[i + 1][1], &x, sizeof(int) == -1))
+			if (write(pipes[i + 1][1], &x, sizeof(int)) == -1)
 			{
 				printf("Error writing\n");
 				return (1);
