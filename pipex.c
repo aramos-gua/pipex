@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/03 19:03:18 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/09 11:33:39 by alex             ###   ########.fr       */
+/*   Updated: 2025/05/09 11:50:12 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,9 +151,16 @@ int	main(int argc, char **argv, char **env)
 			child_process(i, argv, &pipex);
 		if (pipex.prev_fd != -1)
 			close(pipex.prev_fd);
-		close(pipex.pipe_fd[1]);
 		if (i < pipex.cmd_count - 1)
+		{
 			pipex.prev_fd = pipex.pipe_fd[0];
+			close(pipex.pipe_fd[1]);
+		}
+		else
+		{
+			close(pipex.pipe_fd[0]);
+			close(pipex.pipe_fd[1]);
+		}
 		i++;
 	}
 	while (wait(NULL) > 0);
