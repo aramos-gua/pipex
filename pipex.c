@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/03 19:03:18 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/06 22:57:24 by aramos           ###   ########.fr       */
+/*   Updated: 2025/05/09 11:33:39 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 void	child_process(int i, char **argv, t_pipex *pipex)
 {
+	fprintf(stderr, "[child %d] running cmd: %s\n", i, argv[2 + i]);
 	if (i == 0)
 	{
 		dup2(pipex->infile, STDIN_FILENO);
@@ -35,13 +36,13 @@ void	child_process(int i, char **argv, t_pipex *pipex)
 		close(pipex->prev_fd);
 	close(pipex->infile);
 	close(pipex->outfile);
-	excecute_command(argv[2 + i], pipex);
+	execute_command(argv[2 + i], pipex);
 }
 
 char	*get_command_path(char *cmd, char **env)
 {
 	char	**paths;
-	char	*path_env;
+	char	*path_env = NULL;
 	char	*full_path;
 	int		i;
 
@@ -65,9 +66,9 @@ char	*get_command_path(char *cmd, char **env)
 		full_path = malloc(ft_strlen(paths[i]) + ft_strlen(cmd) + 2);
 		if (!full_path)
 			continue ;
-		strcpy(full_path, paths[i]);
-		strncat(full_path, "/");
-		strncat(full_path, cmd);
+		ft_strlcpy(full_path, paths[i], ft_strlen(paths[i]) + 1);
+		ft_strlcat(full_path, "/", ft_strlen(full_path) + 2);
+		ft_strlcat(full_path, cmd, ft_strlen(cmd) + 2);
 		if (access(full_path, X_OK) == 0)
 		{
 			free_split(paths);
@@ -79,19 +80,24 @@ char	*get_command_path(char *cmd, char **env)
 	return (NULL);
 }
 
-void	excecute_command(char *cmd_str, t_pipex *pipex)
+void	execute_command(char *cmd_str, t_pipex *pipex)
 {
 	char	**args;
 	char	*path;
 
 	args = ft_split(cmd_str, ' ');
+	fprintf(stderr, "Trying to execute: %s\n", args[0]);
 	if (!args || !args[0])
+	{
 		perror("Command Parse Error");
+		exit(1);
+	}
 	path = get_command_path(args[0], pipex->env);
 	if (!path)
 	{
 		perror("Command Not Found");
 		free_split(args);
+		exit(1);
 	}
 	execve(path, args, pipex->env);
 	perror("execve Error");
@@ -120,14 +126,20 @@ int	main(int argc, char **argv, char **env)
 
 	i = 0;
 	if (argc < 5)
+	{
 		perror("Usage: ./pipex infile cmd1 cmd2 outfile");
+		exit(1);
+	}
 	pipex.infile = open(argv[1], O_RDONLY); 
 	pipex.outfile = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	pipex.cmd_count = argc - 3;
 	pipex.prev_fd = -1;
 	pipex.env = env;
 	if (pipex.infile < 0 || pipex.outfile < 0)
+	{
 		perror("File Error");
+		exit(1);
+	}
 	while (i < pipex.cmd_count)
 	{
 		if (i < pipex.cmd_count - 1 && pipe(pipex.pipe_fd) == -1)
@@ -139,11 +151,11 @@ int	main(int argc, char **argv, char **env)
 			child_process(i, argv, &pipex);
 		if (pipex.prev_fd != -1)
 			close(pipex.prev_fd);
+		close(pipex.pipe_fd[1]);
 		if (i < pipex.cmd_count - 1)
 			pipex.prev_fd = pipex.pipe_fd[0];
-		close(pipex.pipe_fd[1]);
+		i++;
 	}
 	while (wait(NULL) > 0);
 	return (0);
 }
-

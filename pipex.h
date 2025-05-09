@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/06 22:23:58 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/06 22:46:49 by aramos           ###   ########.fr       */
+/*   Updated: 2025/05/09 11:06:04 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ typedef struct s_pipex
 }	t_pipex;
 
 void	child_process(int i, char **argv, t_pipex *pipex);
-void	excecute_command(char *cmd_str, t_pipex *pipex);
+void	execute_command(char *cmd_str, t_pipex *pipex);
 void	free_split(char **arr);
 
 #endif
