@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/06 22:23:58 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/10 18:25:20 by aramos           ###   ########.fr       */
+/*   Updated: 2025/05/10 21:11:50 by aramos           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ typedef struct s_pipex
 
 int		pipes_init(int ***pipes, int argc);
 int		pipex_init(t_pipex *pipex, int argc, char **argv, char **envp);
-int		child_process(int i, char **argv, t_pipex *pipex, int **pipes);
+void		child_process(int i, char **argv, t_pipex *pipex, int **pipes);
 void	execute_command(char *cmd_str, t_pipex *pipex);
 void	free_split(char **arr);
 void	close_pipes(t_pipex *pipex, int **pipes);
