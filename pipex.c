@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/03 19:03:18 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/09 12:51:09 by alex             ###   ########.fr       */
+/*   Updated: 2025/05/10 18:31:54 by aramos           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,13 +44,39 @@ int	child_process(int i, char **argv, t_pipex *pipex, int **pipes)
 	return (ft_printf("Error evexve\n"), 1);
 }
 
+char	*path_builder(char *cmd, char **paths)
+{
+	int		i;
+	char	*full_path;
+	int		full_path_len;
+
+	i = 0;
+	while (paths[i])
+	{
+		full_path_len = ft_strlen(paths[i]) + ft_strlen(cmd) + 2;
+		full_path = malloc(full_path_len);
+		if (!full_path)
+		{
+			i++;
+			continue ;
+		}
+		ft_strlcpy(full_path, paths[i], ft_strlen(paths[i]) + 1);
+		ft_strlcat(full_path, "/", full_path_len);
+		ft_strlcat(full_path, cmd, full_path_len);
+		if (access(full_path, X_OK) == 0)
+			return (free_split(paths), full_path);
+		free(full_path);
+		i++;
+	}
+	return (NULL);
+}
+
 char	*get_command_path(char *cmd, char **env)
 {
 	char	**paths;
 	char	*path_env;
 	char	*full_path;
 	int		i;
-	int		full_path_len;
 
 	i = 0;
 	path_env = NULL;
@@ -68,29 +94,10 @@ char	*get_command_path(char *cmd, char **env)
 	paths = ft_split(path_env, ':');
 	if (!paths)
 		return (NULL);
-	i = 0;
-	while (paths[i])
-	{
-		full_path_len = ft_strlen(paths[i]) + ft_strlen(cmd) + 2;
-		full_path = malloc(full_path_len);
-		if (!full_path)
-		{
-			i++;
-			continue ;
-		}
-		ft_strlcpy(full_path, paths[i], ft_strlen(paths[i]) + 1);
-		ft_strlcat(full_path, "/", full_path_len);
-		ft_strlcat(full_path, cmd, full_path_len);
-		if (access(full_path, X_OK) == 0)
-		{
-			free_split(paths);
-			return (full_path);
-		}
-		free(full_path);
-		i++;
-	}
-	free_split(paths);
-	return (NULL);
+	full_path = path_builder(cmd, paths);
+	if (access(full_path, X_OK) == 0)
+		return (full_path);
+	return (free_split(paths), NULL);
 }
 
 void	execute_command(char *cmd_str, t_pipex *pipex)
@@ -119,70 +126,20 @@ void	execute_command(char *cmd_str, t_pipex *pipex)
 	exit(1);
 }
 
-void	free_split(char **arr)
-{
-	int	i;
-
-	i = 0;
-	if (!arr)
-		return ;
-	while (arr[i])
-		free(arr[i++]);
-	free(arr);
-}
-
 int	main(int argc, char **argv, char **envp)
 {
 	int		**pipes;
-	pid_t	pid;
 	t_pipex	pipex;
-	int		i;
-	int		k;
 
-	i = 0;
-	pipes = malloc((argc - 4) * sizeof(int *));
-	if (!pipes)
-		return (ft_printf("Error with malloc\n"), 1);
-	while (i < argc -4)
-		pipes[i++] = malloc(2 * sizeof(int));
-	i = 0;
 	if (argc < 5)
 		return (ft_printf("Usage: ./pipex infile \"cmd1 [options]\" \"cmd2 [options]\" outfile\n"), 1);
-	pipex.infile = open(argv[1], O_RDONLY);
-	pipex.outfile = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	pipex.cmd_count = argc - 3;
-	pipex.env = envp;
-	if (pipex.infile < 0 || pipex.outfile < 0)
-		return (ft_printf("File Error\n"), 1);
-	while (i < pipex.cmd_count)
-	{
-		if (i < pipex.cmd_count - 1 && pipe(pipes[i]) == -1)
-			return (ft_printf("Error with pipes\n"), 1);
-		pid = fork();
-		if (pid < 0)
-			return (ft_printf("Error with fork\n"), 1);
-		if (pid == 0)
-			child_process(i, argv, &pipex, pipes);
-		if (i > 0)
-			close(pipes[i - 1][0]);
-		if (i < pipex.cmd_count - 1)
-			close(pipes[i][1]);
-		i++;
-	}
-	k = 0;
+	pipex_init(&pipex, argc, argv, envp);
+	pipes = pipes_forks(&pipex, argc, argv);
 	close(pipex.infile);
 	close(pipex.outfile);
-	while (k < pipex.cmd_count - 1)
-	{
-		close(pipes[k][0]);
-		close(pipes[k][1]);
-		k++;
-	}
+	close_pipes(&pipex, pipes);
 	while (wait(NULL) > 0)
 		;
-	i = 0;
-	while (i < argc)
-		free(pipes[i++]);
-	free(pipes);
+	free_pipes(argc, pipes);
 	return (0);
 }
