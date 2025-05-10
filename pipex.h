@@ -31,7 +31,7 @@ typedef struct s_pipex
 	char	**env;
 }	t_pipex;
 
-int		child_process(int i, char **argv, t_pipex *pipex, int pipes[][2]);
+int		child_process(int i, char **argv, t_pipex *pipex, int **pipes);
 void	execute_command(char *cmd_str, t_pipex *pipex);
 void	free_split(char **arr);
 
