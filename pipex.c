@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/03 19:03:18 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/10 18:31:54 by aramos           ###   ########.fr       */
+/*   Updated: 2025/05/10 18:41:32 by aramos           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,27 +16,22 @@ int	child_process(int i, char **argv, t_pipex *pipex, int **pipes)
 {
 	int	j;
 
-	j = 0;
+	j = -1;
 	if (i == 0)
 	{
 		dup2(pipex->infile, STDIN_FILENO);
 		dup2(pipes[i][1], STDOUT_FILENO);
 	}
-	else if (i == pipex->cmd_count - 1)
-	{
-		dup2(pipes[i - 1][0], STDIN_FILENO);
-		dup2(pipex->outfile, STDOUT_FILENO);
-	}
 	else
-	{
 		dup2(pipes[i - 1][0], STDIN_FILENO);
+	if (i == pipex->cmd_count - 1)
+		dup2(pipex->outfile, STDOUT_FILENO);
+	else
 		dup2(pipes[i][1], STDOUT_FILENO);
-	}
-	while (j < pipex->cmd_count - 1)
+	while (++j < pipex->cmd_count - 1)
 	{
 		close(pipes[j][0]);
 		close(pipes[j][1]);
-		j++;
 	}
 	close(pipex->infile);
 	close(pipex->outfile);
@@ -132,7 +127,8 @@ int	main(int argc, char **argv, char **envp)
 	t_pipex	pipex;
 
 	if (argc < 5)
-		return (ft_printf("Usage: ./pipex infile \"cmd1 [options]\" \"cmd2 [options]\" outfile\n"), 1);
+		return (ft_printf("Usage: ./pipex infile\
+			\"cmd1 [options]\" \"cmd2 [options]\" outfile\n"), 1);
 	pipex_init(&pipex, argc, argv, envp);
 	pipes = pipes_forks(&pipex, argc, argv);
 	close(pipex.infile);

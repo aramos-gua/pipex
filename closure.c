@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/10 18:14:23 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/10 18:16:24 by aramos           ###   ########.fr       */
+/*   Updated: 2025/05/10 18:42:26 by aramos           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@ void	close_pipes(t_pipex *pipex, int **pipes)
 		close(pipes[i][1]);
 		i++;
 	}
-
 }
 
 void	free_pipes(int argc, int **pipes)
