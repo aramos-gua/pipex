@@ -26,12 +26,12 @@ typedef struct s_pipex
 	int		infile;
 	int		outfile;
 	int		cmd_count;
-	int		pipe_fd[2];
+	//int		pipe_fd[2];
 	int		prev_fd;
 	char	**env;
 }	t_pipex;
 
-void	child_process(int i, char **argv, t_pipex *pipex);
+int		child_process(int i, char **argv, t_pipex *pipex, int pipes[][2]);
 void	execute_command(char *cmd_str, t_pipex *pipex);
 void	free_split(char **arr);
 
