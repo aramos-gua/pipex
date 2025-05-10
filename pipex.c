@@ -12,7 +12,7 @@
 
 #include "pipex.h"
 
-int	child_process(int i, char **argv, t_pipex *pipex, int pipes[][2])
+int	child_process(int i, char **argv, t_pipex *pipex, int **pipes)
 {
 	int	j;
 
@@ -47,12 +47,13 @@ int	child_process(int i, char **argv, t_pipex *pipex, int pipes[][2])
 char	*get_command_path(char *cmd, char **env)
 {
 	char	**paths;
-	char	*path_env = NULL;
+	char	*path_env;
 	char	*full_path;
 	int		i;
 	int		full_path_len;
 
 	i = 0;
+	path_env = NULL;
 	while (env[i])
 	{
 		if (ft_strncmp(env[i], "PATH=", 5) == 0)
@@ -132,16 +133,22 @@ void	free_split(char **arr)
 
 int	main(int argc, char **argv, char **envp)
 {
-	int		pipes[argc - 4][2];
+	int		**pipes;
 	pid_t	pid;
 	t_pipex	pipex;
 	int		i;
 	int		k;
 
 	i = 0;
+	pipes = malloc((argc - 4) * sizeof(int *));
+	if (!pipes)
+		return (ft_printf("Error with malloc\n"), 1);
+	while (i < argc -4)
+		pipes[i++] = malloc(2 * sizeof(int));
+	i = 0;
 	if (argc < 5)
 		return (ft_printf("Usage: ./pipex infile \"cmd1 [options]\" \"cmd2 [options]\" outfile\n"), 1);
-	pipex.infile = open(argv[1], O_RDONLY); 
+	pipex.infile = open(argv[1], O_RDONLY);
 	pipex.outfile = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	pipex.cmd_count = argc - 3;
 	pipex.env = envp;
@@ -153,7 +160,7 @@ int	main(int argc, char **argv, char **envp)
 			return (ft_printf("Error with pipes\n"), 1);
 		pid = fork();
 		if (pid < 0)
-			return  (ft_printf("Error with fork\n"), 1);
+			return (ft_printf("Error with fork\n"), 1);
 		if (pid == 0)
 			child_process(i, argv, &pipex, pipes);
 		if (i > 0)
