@@ -34,7 +34,9 @@ NAME = pipex
 LIBFT = $(LIBFTDIR)/libft.a
 
 # Files
-SRC = ./pipex.c
+SRC = ./pipex.c\
+	  ./init.c\
+	  ./closure.c
 
 OBJ = $(SRC:.c=.o)
 
