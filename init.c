@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/10 18:12:34 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/10 18:25:10 by aramos           ###   ########.fr       */
+/*   Updated: 2025/05/10 18:42:34 by aramos           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,4 +61,3 @@ int	pipex_init(t_pipex *pipex, int argc, char **argv, char **envp)
 		return (ft_printf("File Error\n"), 1);
 	return (0);
 }
-
