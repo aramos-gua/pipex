@@ -180,5 +180,9 @@ int	main(int argc, char **argv, char **envp)
 	}
 	while (wait(NULL) > 0)
 		;
+	i = 0;
+	while (i < argc)
+		free(pipes[i++]);
+	free(pipes);
 	return (0);
 }
