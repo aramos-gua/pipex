@@ -1,0 +1,12 @@
+closure.c
+closure.o
+infiles
+init.c
+init.o
+libft
+Makefile
+outfiles
+pipex
+pipex.c
+pipex.h
+pipex.o

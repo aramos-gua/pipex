@@ -58,6 +58,6 @@ int	pipex_init(t_pipex *pipex, int argc, char **argv, char **envp)
 	pipex->cmd_count = argc - 3;
 	pipex->env = envp;
 	if (pipex->infile < 0 || pipex->outfile < 0)
-		return (perror("File Error\n"), 1);
+		return (perror("File Error\n"), 0);
 	return (0);
 }
