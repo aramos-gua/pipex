@@ -39,6 +39,6 @@ void	execute_command(char *cmd_str, t_pipex *pipex);
 void	free_split(char **arr);
 void	close_pipes(t_pipex *pipex, int **pipes);
 void	free_pipes(int argc, int **pipes);
-int		**pipes_forks(t_pipex *pipex, int argc, char **argv);
+int		**pipes_forks(t_pipex *pipex, int argc, char **argv, pid_t *last_pid);
 
 #endif

@@ -133,29 +133,42 @@ void	execute_command(char *cmd_str, t_pipex *pipex)
 		free_split(args);
 		exit(127);
 	}
-	execve(path, args, pipex->env);
-	perror("execve");
+	if (execve(path, args, pipex->env) == -1)
+	{
+		perror("execve");
+		free(path);
+		free_split(args);
+		exit (1);
+	}
 	free(path);
 	free_split(args);
-	exit(1);
 }
 
 int	main(int argc, char **argv, char **envp)
 {
 	int		**pipes;
 	t_pipex	pipex;
+	int		status;
+	pid_t	last_pid;
+	pid_t	pid;
+	int		i;
 
+	last_pid = -1;
 	if (argc < 5)
 		return (ft_printf("Usage: ./pipex infile\
 			\"cmd1 [options]\" \"cmd2 [options]\" outfile\n"), 1);
 	if (pipex_init(&pipex, argc, argv, envp) == 1)
 		return (pipex.return_val);
-	pipes = pipes_forks(&pipex, argc, argv);
+	pipes = pipes_forks(&pipex, argc, argv, &last_pid);
 	close(pipex.infile);
 	close(pipex.outfile);
 	close_pipes(&pipex, pipes);
-	while (wait(NULL) > 0)
-		;
+	while (i++ < pipex.cmd_count)
+	{
+		pid = wait(&status);
+		if (pid == last_pid && WIFEXITED(status))
+			pipex.return_val = WIFEXITED(status);
+	}
 	free_pipes(argc, pipes);
 	return (pipex.return_val);
 }

@@ -12,7 +12,7 @@
 
 #include "pipex.h"
 
-int	**pipes_forks(t_pipex *pipex, int argc, char **argv)
+int	**pipes_forks(t_pipex *pipex, int argc, char **argv, pid_t *last_pid)
 {
 	int		**pipes;
 	pid_t	pid;
@@ -23,10 +23,18 @@ int	**pipes_forks(t_pipex *pipex, int argc, char **argv)
 	while (i < pipex->cmd_count)
 	{
 		if (i < pipex->cmd_count - 1 && pipe(pipes[i]) == -1)
+		{
 			ft_printf("Error with pipes\n");
+			exit(1);
+		}
 		pid = fork();
 		if (pid < 0)
+		{
 			ft_printf("Error with fork\n");
+			exit(1);
+		}
+		if (i == pipex->cmd_count -1)
+			*last_pid = pid;
 		if (pid == 0)
 			child_process(i, argv, pipex, pipes);
 		if (i > 0)
@@ -47,7 +55,15 @@ int	pipes_init(int ***pipes, int argc)
 	if (!*pipes)
 		return (ft_printf("Error with malloc\n"), 1);
 	while (i < argc - 4)
-		*pipes[i++] = malloc(2 * sizeof(int));
+	{
+		*pipes[i] = malloc(2 * sizeof(int));
+		if (!pipes)
+		{
+			ft_printf("Error with malloc\n");
+			return (1);
+		}
+		i++;
+	}
 	return (0);
 }
 
@@ -55,10 +71,21 @@ int	pipex_init(t_pipex *pipex, int argc, char **argv, char **envp)
 {
 	pipex->return_val = 0;
 	pipex->infile = open(argv[1], O_RDONLY);
+	if (pipex->infile < 0)
+	{
+		ft_printf("Error opening %s\n", argv[1]);
+		pipex->return_val = 1;
+		return (1);
+	}
 	pipex->outfile = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (pipex->outfile < 0)
+	{
+		ft_printf("Error with %s permissions\n", argv[argc - 1]);
+		pipex->return_val = 1;
+		close(pipex->infile);
+		return (1);
+	}
 	pipex->cmd_count = argc - 3;
 	pipex->env = envp;
-	if (pipex->infile < 0)// || pipex->outfile < 0)
-		pipex->return_val = 1;
 	return (0);
 }
