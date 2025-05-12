@@ -15,6 +15,7 @@
 void	child_process(int i, char **argv, t_pipex *pipex, int **pipes)
 {
 	int	j;
+	int	devnull;
 
 	j = -1;
 	if (i == 0)
@@ -23,8 +24,9 @@ void	child_process(int i, char **argv, t_pipex *pipex, int **pipes)
 			dup2(pipex->infile, STDIN_FILENO);
 		else
 		{
-			write(2, "pipex: Infile Error\n", 20);
-			exit(1);
+			devnull = open("/dev/null", O_RDONLY);
+			dup2(devnull, STDIN_FILENO);
+			close(devnull);
 		}
 		dup2(pipes[i][1], STDOUT_FILENO);
 	}
@@ -153,6 +155,7 @@ int	main(int argc, char **argv, char **envp)
 	pid_t	pid;
 	int		i;
 
+	i = 0;
 	last_pid = -1;
 	if (argc < 5)
 		return (ft_printf("Usage: ./pipex infile\
@@ -167,7 +170,7 @@ int	main(int argc, char **argv, char **envp)
 	{
 		pid = wait(&status);
 		if (pid == last_pid && WIFEXITED(status))
-			pipex.return_val = WIFEXITED(status);
+			pipex.return_val = WEXITSTATUS(status);
 	}
 	free_pipes(argc, pipes);
 	return (pipex.return_val);
