@@ -72,9 +72,7 @@ int	pipex_init(t_pipex *pipex, int argc, char **argv, char **envp)
 	pipex->return_val = 0;
 	pipex->infile = open(argv[1], O_RDONLY);
 	if (pipex->infile < 0)
-	{
 		pipex->return_val = 1;
-	}
 	pipex->outfile = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (pipex->outfile < 0)
 	{

@@ -18,6 +18,11 @@ void	child_process(int i, char **argv, t_pipex *pipex, int **pipes)
 	int	devnull;
 
 	j = -1;
+	if (!argv[2 + i] || !argv[2 + i][0])
+	{
+		write(2, "pipex: Command Not Found\n", 25);
+		exit(127);
+	}
 	if (i == 0)
 	{
 		if (pipex->infile >= 0)
