@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/03 19:03:18 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/10 21:24:43 by aramos           ###   ########.fr       */
+/*   Updated: 2025/05/12 17:19:33 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,7 +149,7 @@ int	main(int argc, char **argv, char **envp)
 		return (ft_printf("Usage: ./pipex infile\
 			\"cmd1 [options]\" \"cmd2 [options]\" outfile\n"), 1);
 	if (pipex_init(&pipex, argc, argv, envp) == 1)
-		return (1);
+		return (pipex.return_val);
 	pipes = pipes_forks(&pipex, argc, argv);
 	close(pipex.infile);
 	close(pipex.outfile);
@@ -157,5 +157,5 @@ int	main(int argc, char **argv, char **envp)
 	while (wait(NULL) > 0)
 		;
 	free_pipes(argc, pipes);
-	return (0);
+	return (pipex.return_val);
 }

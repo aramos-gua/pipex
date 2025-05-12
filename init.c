@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/10 18:12:34 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/10 19:08:15 by aramos           ###   ########.fr       */
+/*   Updated: 2025/05/12 17:15:23 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,11 +53,12 @@ int	pipes_init(int ***pipes, int argc)
 
 int	pipex_init(t_pipex *pipex, int argc, char **argv, char **envp)
 {
+	pipex->return_val = 0;
 	pipex->infile = open(argv[1], O_RDONLY);
 	pipex->outfile = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	pipex->cmd_count = argc - 3;
 	pipex->env = envp;
-	if (pipex->infile < 0 || pipex->outfile < 0)
-		return (perror("File Error\n"), 0);
+	if (pipex->infile < 0)// || pipex->outfile < 0)
+		pipex->return_val = 1;
 	return (0);
 }

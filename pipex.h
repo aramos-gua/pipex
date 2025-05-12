@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/06 22:23:58 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/10 21:11:50 by aramos           ###   ########.fr       */
+/*   Updated: 2025/05/12 17:14:08 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ typedef struct s_pipex
 	//int		pipe_fd[2];
 	int		prev_fd;
 	char	**env;
+	int		return_val;
 }	t_pipex;
 
 int		pipes_init(int ***pipes, int argc);
