@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/10 18:14:23 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/13 13:08:20 by alex             ###   ########.fr       */
+/*   Updated: 2025/05/13 14:21:20 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,4 +45,12 @@ void	free_split(char **arr)
 	while (arr[i])
 		free(arr[i++]);
 	free(arr);
+}
+
+void	execute_command_exit(t_pipex *pipex, char **args, int **pipes)
+{
+	write(2, "pipex: Command Not Found\n", 25);
+	free_split(args);
+	free_pipes(pipex->cmd_count, pipes);
+	exit(127);
 }

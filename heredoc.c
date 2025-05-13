@@ -6,7 +6,7 @@
 /*   By: alex <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/13 12:40:37 by alex              #+#    #+#             */
-/*   Updated: 2025/05/13 13:07:37 by alex             ###   ########.fr       */
+/*   Updated: 2025/05/13 13:42:28 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 int	read_heredoc(char *delimiter)
 {
-	int	pipe_fd[2];
+	int		pipe_fd[2];
 	char	*line;
 
 	if (pipe(pipe_fd) == -1)
@@ -28,7 +28,8 @@ int	read_heredoc(char *delimiter)
 		line = get_next_line(STDIN_FILENO);
 		if (!line)
 			break ;
-		if (ft_strncmp(line, delimiter, ft_strlen(delimiter)) == 0 && line[ft_strlen(delimiter)] == '\n')
+		if (ft_strncmp(line, delimiter, ft_strlen(delimiter)) == 0
+			&& line[ft_strlen(delimiter)] == '\n')
 		{
 			free(line);
 			break ;

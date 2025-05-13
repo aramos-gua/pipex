@@ -6,65 +6,11 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/03 19:03:18 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/13 13:38:46 by alex             ###   ########.fr       */
+/*   Updated: 2025/05/13 15:26:58 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
-
-void	child_process(int i, char **argv, t_pipex *pipex, int **pipes)
-{
-	int	j;
-	int	devnull;
-	int	cmd_shift;
-
-	j = -1;
-	if (pipex->heredoc_on)
-		cmd_shift = 3;
-	else
-		cmd_shift = 2;
-	if (!argv[cmd_shift + i] || !argv[cmd_shift + i][0])
-	{
-		write(2, "pipex: Command Not Found\n", 25);
-		free_pipes(pipex->cmd_count, pipes); 
-		exit(127);
-	}
-	if (i == 0)
-	{
-		if (pipex->infile >= 0)
-			dup2(pipex->infile, STDIN_FILENO);
-		else
-		{
-			devnull = open("/dev/null", O_RDONLY);
-			dup2(devnull, STDIN_FILENO);
-			close(devnull);
-		}
-		dup2(pipes[i][1], STDOUT_FILENO);
-	}
-	else
-		dup2(pipes[i - 1][0], STDIN_FILENO);
-	if (i == pipex->cmd_count - 1)
-	{
-		if (pipex->outfile >= 0)
-			dup2(pipex->outfile, STDOUT_FILENO);
-		else
-		{
-			write(2, "pipex: Outfile Error\n", 22);
-			free_pipes(pipex->cmd_count, pipes); 
-			exit(1);
-		}
-	}
-	else
-		dup2(pipes[i][1], STDOUT_FILENO);
-	while (++j < pipex->cmd_count - 1)
-	{
-		close(pipes[j][0]);
-		close(pipes[j][1]);
-	}
-	close(pipex->infile);
-	close(pipex->outfile);
-	execute_command(argv[cmd_shift + i], pipex, pipes);
-}
 
 char	*path_builder(char *cmd, char **paths)
 {
@@ -105,10 +51,7 @@ char	*get_command_path(char *cmd, char **env)
 	while (env[i])
 	{
 		if (ft_strncmp(env[i], "PATH=", 5) == 0)
-		{
 			path_env = env[i] + 5;
-			break ;
-		}
 		i++;
 	}
 	if (!path_env)
@@ -118,10 +61,7 @@ char	*get_command_path(char *cmd, char **env)
 		return (NULL);
 	full_path = path_builder(cmd, paths);
 	if (!full_path)
-	{
-		free_split(paths);
-		return (NULL);
-	}
+		return (free_split(paths), NULL);
 	if (access(full_path, X_OK) == 0)
 		return (full_path);
 	return (free_split(paths), NULL);
@@ -134,27 +74,16 @@ void	execute_command(char *cmd_str, t_pipex *pipex, int **pipes)
 
 	args = ft_split(cmd_str, ' ');
 	if (!args || !args[0] || !args[0][0])
-	{
-		write(2, "pipex: Command Not Found\n", 25);
-		if (args)
-			free_split(args);
-		free_pipes(pipex->cmd_count, pipes); 
-		exit(127);
-	}
+		execute_command_exit(pipex, args, pipes);
 	path = get_command_path(args[0], pipex->env);
 	if (!path)
-	{
-		write(2, "pipex: Command Not Found\n", 25);
-		free_split(args);
-		free_pipes(pipex->cmd_count, pipes); 
-		exit(127);
-	}
+		execute_command_exit(pipex, args, pipes);
 	if (execve(path, args, pipex->env) == -1)
 	{
 		perror("execve");
 		free(path);
 		free_split(args);
-		free_pipes(pipex->cmd_count, pipes); 
+		free_pipes(pipex->cmd_count, pipes);
 		exit (1);
 	}
 	free(path);
@@ -165,28 +94,17 @@ int	main(int argc, char **argv, char **envp)
 {
 	int		**pipes;
 	t_pipex	pipex;
-	int		status;
 	pid_t	last_pid;
-	pid_t	pid;
-	int		i;
 
-	i = 0;
 	last_pid = -1;
 	if (argc < 5)
 		return (ft_printf("Usage: ./pipex infile\
 			\"cmd1 [options]\" \"cmd2 [options]\" outfile\n"), 1);
 	pipex_init(&pipex, argc, argv, envp);
-		//return (pipex.return_val);
 	pipes = pipes_forks(&pipex, argv, &last_pid);
 	close(pipex.infile);
 	close(pipex.outfile);
-	close_pipes(&pipex, pipes);
-	while (i++ < pipex.cmd_count)
-	{
-		pid = wait(&status);
-		if (pid == last_pid && WIFEXITED(status))
-			pipex.return_val = WEXITSTATUS(status);
-	}
+	wait_children(&pipex, last_pid);
 	free_pipes(pipex.cmd_count, pipes);
 	return (pipex.return_val);
 }

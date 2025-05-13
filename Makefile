@@ -37,7 +37,8 @@ LIBFT = $(LIBFTDIR)/libft.a
 SRC = ./pipex.c\
 	  ./init.c\
 	  ./closure.c\
-	./heredoc.c
+	./heredoc.c\
+	./child_process.c
 
 OBJ = $(SRC:.c=.o)
 
