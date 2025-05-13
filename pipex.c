@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/03 19:03:18 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/12 17:19:33 by alex             ###   ########.fr       */
+/*   Updated: 2025/05/13 10:26:46 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ void	child_process(int i, char **argv, t_pipex *pipex, int **pipes)
 	}
 	close(pipex->infile);
 	close(pipex->outfile);
-	execute_command(argv[2 + i], pipex);
+	execute_command(argv[2 + i], pipex, pipes);
 }
 
 char	*path_builder(char *cmd, char **paths)
@@ -120,7 +120,7 @@ char	*get_command_path(char *cmd, char **env)
 	return (free_split(paths), NULL);
 }
 
-void	execute_command(char *cmd_str, t_pipex *pipex)
+void	execute_command(char *cmd_str, t_pipex *pipex, int **pipes)
 {
 	char	**args;
 	char	*path;
@@ -131,6 +131,7 @@ void	execute_command(char *cmd_str, t_pipex *pipex)
 		write(2, "pipex: Command Not Found\n", 25);
 		if (args)
 			free_split(args);
+		free_pipes(pipex->cmd_count + 3, pipes); 
 		exit(127);
 	}
 	path = get_command_path(args[0], pipex->env);
@@ -138,6 +139,7 @@ void	execute_command(char *cmd_str, t_pipex *pipex)
 	{
 		write(2, "pipex: Command Not Found\n", 25);
 		free_split(args);
+		free_pipes(pipex->cmd_count + 3, pipes); 
 		exit(127);
 	}
 	if (execve(path, args, pipex->env) == -1)
@@ -145,6 +147,7 @@ void	execute_command(char *cmd_str, t_pipex *pipex)
 		perror("execve");
 		free(path);
 		free_split(args);
+		free_pipes(pipex->cmd_count + 3, pipes); 
 		exit (1);
 	}
 	free(path);
@@ -165,8 +168,8 @@ int	main(int argc, char **argv, char **envp)
 	if (argc < 5)
 		return (ft_printf("Usage: ./pipex infile\
 			\"cmd1 [options]\" \"cmd2 [options]\" outfile\n"), 1);
-	if (pipex_init(&pipex, argc, argv, envp) == 1)
-		return (pipex.return_val);
+	pipex_init(&pipex, argc, argv, envp);
+		//return (pipex.return_val);
 	pipes = pipes_forks(&pipex, argc, argv, &last_pid);
 	close(pipex.infile);
 	close(pipex.outfile);

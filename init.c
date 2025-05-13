@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/10 18:12:34 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/12 17:15:23 by alex             ###   ########.fr       */
+/*   Updated: 2025/05/13 10:06:39 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,8 @@ int	pipes_init(int ***pipes, int argc)
 		(*pipes)[i] = malloc(2 * sizeof(int));
 		if (!(*pipes)[i])
 		{
+			free((*pipes)[i]);
+			free(*pipes);
 			ft_printf("Error with malloc\n");
 			return (1);
 		}
@@ -79,7 +81,7 @@ int	pipex_init(t_pipex *pipex, int argc, char **argv, char **envp)
 		ft_printf("Error with %s permissions\n", argv[argc - 1]);
 		pipex->return_val = 1;
 		close(pipex->infile);
-		return (1);
+	//	return (1);
 	}
 	pipex->cmd_count = argc - 3;
 	pipex->env = envp;
