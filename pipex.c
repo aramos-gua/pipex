@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/03 19:03:18 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/13 10:37:20 by alex             ###   ########.fr       */
+/*   Updated: 2025/05/13 10:49:07 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@ void	child_process(int i, char **argv, t_pipex *pipex, int **pipes)
 	if (!argv[2 + i] || !argv[2 + i][0])
 	{
 		write(2, "pipex: Command Not Found\n", 25);
+		free_pipes(pipex->cmd_count + 3, pipes); 
 		exit(127);
 	}
 	if (i == 0)
