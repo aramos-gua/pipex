@@ -2,3 +2,4 @@ tester
 a.out
 infile
 outfile
+*.swp
