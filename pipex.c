@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/03 19:03:18 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/13 15:26:58 by alex             ###   ########.fr       */
+/*   Updated: 2025/05/13 18:33:11 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,14 +46,13 @@ char	*get_command_path(char *cmd, char **env)
 	char	*full_path;
 	int		i;
 
-	i = 0;
+	i = -1;
 	path_env = NULL;
-	while (env[i])
-	{
+	if (access(cmd, X_OK) == 0)
+		return (cmd);
+	while (env[++i])
 		if (ft_strncmp(env[i], "PATH=", 5) == 0)
 			path_env = env[i] + 5;
-		i++;
-	}
 	if (!path_env)
 		return (NULL);
 	paths = ft_split(path_env, ':');
