@@ -6,20 +6,20 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/10 18:12:34 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/13 11:39:39 by alex             ###   ########.fr       */
+/*   Updated: 2025/05/13 13:15:20 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-int	**pipes_forks(t_pipex *pipex, int argc, char **argv, pid_t *last_pid)
+int	**pipes_forks(t_pipex *pipex, char **argv, pid_t *last_pid)
 {
 	int		**pipes;
 	pid_t	pid;
 	int		i;
 
 	i = 0;
-	pipes_init(&pipes, argc);
+	pipes_init(&pipes, pipex->cmd_count);
 	while (i < pipex->cmd_count - 1)
 	{
 		if (pipe(pipes[i]) == -1)
@@ -54,15 +54,15 @@ int	**pipes_forks(t_pipex *pipex, int argc, char **argv, pid_t *last_pid)
 	return (pipes);
 }
 
-int	pipes_init(int ***pipes, int argc)
+int	pipes_init(int ***pipes, int cmd_count)
 {
 	int	i;
 
 	i = 0;
-	*pipes = malloc((argc - 4) * sizeof(int *));
+	*pipes = malloc((cmd_count - 1) * sizeof(int *));
 	if (!*pipes)
 		return (ft_printf("Error with malloc\n"), 1);
-	while (i < argc - 4)
+	while (i < cmd_count - 1)
 	{
 		(*pipes)[i] = malloc(2 * sizeof(int));
 		if (!(*pipes)[i])
@@ -80,18 +80,27 @@ int	pipes_init(int ***pipes, int argc)
 int	pipex_init(t_pipex *pipex, int argc, char **argv, char **envp)
 {
 	pipex->return_val = 0;
-	pipex->infile = open(argv[1], O_RDONLY);
-	if (pipex->infile < 0)
-		pipex->return_val = 1;
-	pipex->outfile = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	pipex->heredoc_on = (ft_strncmp(argv[1], "here_doc", 9) == 0);
+	pipex->env = envp;
+	if (pipex->heredoc_on)
+	{
+		pipex->infile = read_heredoc(argv[2]);
+		pipex->outfile = open(argv[argc - 1], O_CREAT | O_WRONLY | O_APPEND, 0644);
+		pipex->cmd_count = argc - 4;
+	}
+	else
+	{
+		pipex->infile = open(argv[1], O_RDONLY);
+		if (pipex->infile < 0)
+			pipex->return_val = 1;
+		pipex->outfile = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		pipex->cmd_count = argc - 3;
+	}
 	if (pipex->outfile < 0)
 	{
 		ft_printf("Error with %s permissions\n", argv[argc - 1]);
 		pipex->return_val = 1;
 		close(pipex->infile);
-	//	return (1);
 	}
-	pipex->cmd_count = argc - 3;
-	pipex->env = envp;
 	return (0);
 }

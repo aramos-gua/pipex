@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/03 19:03:18 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/13 10:49:07 by alex             ###   ########.fr       */
+/*   Updated: 2025/05/13 13:38:46 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,17 @@ void	child_process(int i, char **argv, t_pipex *pipex, int **pipes)
 {
 	int	j;
 	int	devnull;
+	int	cmd_shift;
 
 	j = -1;
-	if (!argv[2 + i] || !argv[2 + i][0])
+	if (pipex->heredoc_on)
+		cmd_shift = 3;
+	else
+		cmd_shift = 2;
+	if (!argv[cmd_shift + i] || !argv[cmd_shift + i][0])
 	{
 		write(2, "pipex: Command Not Found\n", 25);
-		free_pipes(pipex->cmd_count + 3, pipes); 
+		free_pipes(pipex->cmd_count, pipes); 
 		exit(127);
 	}
 	if (i == 0)
@@ -45,7 +50,7 @@ void	child_process(int i, char **argv, t_pipex *pipex, int **pipes)
 		else
 		{
 			write(2, "pipex: Outfile Error\n", 22);
-			free_pipes(pipex->cmd_count + 3, pipes); 
+			free_pipes(pipex->cmd_count, pipes); 
 			exit(1);
 		}
 	}
@@ -58,7 +63,7 @@ void	child_process(int i, char **argv, t_pipex *pipex, int **pipes)
 	}
 	close(pipex->infile);
 	close(pipex->outfile);
-	execute_command(argv[2 + i], pipex, pipes);
+	execute_command(argv[cmd_shift + i], pipex, pipes);
 }
 
 char	*path_builder(char *cmd, char **paths)
@@ -133,7 +138,7 @@ void	execute_command(char *cmd_str, t_pipex *pipex, int **pipes)
 		write(2, "pipex: Command Not Found\n", 25);
 		if (args)
 			free_split(args);
-		free_pipes(pipex->cmd_count + 3, pipes); 
+		free_pipes(pipex->cmd_count, pipes); 
 		exit(127);
 	}
 	path = get_command_path(args[0], pipex->env);
@@ -141,7 +146,7 @@ void	execute_command(char *cmd_str, t_pipex *pipex, int **pipes)
 	{
 		write(2, "pipex: Command Not Found\n", 25);
 		free_split(args);
-		free_pipes(pipex->cmd_count + 3, pipes); 
+		free_pipes(pipex->cmd_count, pipes); 
 		exit(127);
 	}
 	if (execve(path, args, pipex->env) == -1)
@@ -149,7 +154,7 @@ void	execute_command(char *cmd_str, t_pipex *pipex, int **pipes)
 		perror("execve");
 		free(path);
 		free_split(args);
-		free_pipes(pipex->cmd_count + 3, pipes); 
+		free_pipes(pipex->cmd_count, pipes); 
 		exit (1);
 	}
 	free(path);
@@ -172,7 +177,7 @@ int	main(int argc, char **argv, char **envp)
 			\"cmd1 [options]\" \"cmd2 [options]\" outfile\n"), 1);
 	pipex_init(&pipex, argc, argv, envp);
 		//return (pipex.return_val);
-	pipes = pipes_forks(&pipex, argc, argv, &last_pid);
+	pipes = pipes_forks(&pipex, argv, &last_pid);
 	close(pipex.infile);
 	close(pipex.outfile);
 	close_pipes(&pipex, pipes);
@@ -182,6 +187,6 @@ int	main(int argc, char **argv, char **envp)
 		if (pid == last_pid && WIFEXITED(status))
 			pipex.return_val = WEXITSTATUS(status);
 	}
-	free_pipes(argc, pipes);
+	free_pipes(pipex.cmd_count, pipes);
 	return (pipex.return_val);
 }

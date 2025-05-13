@@ -3,3 +3,4 @@ a.out
 infile
 outfile
 *.swp
+no_leak_tester
