@@ -6,7 +6,7 @@
 /*   By: aramos <alejandro.ramos.gua@gmail.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/10 18:12:34 by aramos            #+#    #+#             */
-/*   Updated: 2025/05/13 10:06:39 by alex             ###   ########.fr       */
+/*   Updated: 2025/05/13 11:39:39 by alex             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,13 +20,18 @@ int	**pipes_forks(t_pipex *pipex, int argc, char **argv, pid_t *last_pid)
 
 	i = 0;
 	pipes_init(&pipes, argc);
-	while (i < pipex->cmd_count)
+	while (i < pipex->cmd_count - 1)
 	{
-		if (i < pipex->cmd_count - 1 && pipe(pipes[i]) == -1)
+		if (pipe(pipes[i]) == -1)
 		{
 			ft_printf("Error with pipes\n");
 			exit(1);
 		}
+		i++;
+	}
+	i = 0;
+	while (i < pipex->cmd_count)
+	{
 		pid = fork();
 		if (pid < 0)
 		{
@@ -37,10 +42,13 @@ int	**pipes_forks(t_pipex *pipex, int argc, char **argv, pid_t *last_pid)
 			*last_pid = pid;
 		if (pid == 0)
 			child_process(i, argv, pipex, pipes);
-		if (i > 0)
-			close(pipes[i - 1][0]);
-		if (i < pipex->cmd_count - 1)
-			close(pipes[i][1]);
+		i++;
+	}
+	i = 0;
+	while (i < pipex->cmd_count - 1)
+	{
+		close(pipes[i][0]);
+		close(pipes[i][1]);
 		i++;
 	}
 	return (pipes);
