@@ -33,7 +33,10 @@ void	last_command(t_pipex *pipex, int **pipes)
 		dup2(pipex->outfile, STDOUT_FILENO);
 	else
 	{
-		write(2, "pipex: Outfile Error\n", 22);
+		write(2, "pipex: Outfile Error HERE\n", 26);
+		close_pipes(pipex, pipes);
+		close(pipex->infile);
+		close(pipex->outfile);
 		free_pipes(pipex->cmd_count, pipes);
 		exit(1);
 	}
