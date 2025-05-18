@@ -24,7 +24,7 @@ DARK_YELLOW =	\033[38;5;143m
 
 #Compiler information
 CC = cc
-CFLAGS = -Wall -Werror -Wextra
+CFLAGS = -Wall -Werror -Wextra -MMD -MP
 
 # Directories of other dependencies
 LIBFTDIR = ./libft
@@ -32,26 +32,28 @@ LIBFTDIR = ./libft
 # Target names
 NAME = pipex
 LIBFT = $(LIBFTDIR)/libft.a
+OBJ_DIR = build
 
 # Files
 SRC = ./pipex.c\
-	  ./init.c\
-	  ./closure.c\
+	./init.c\
+	./closure.c\
 	./heredoc.c\
 	./child_process.c
 
-OBJ = $(SRC:.c=.o)
+OBJ = $(addprefix $(OBJ_DIR)/,$(SRC:.c=.o))
 
 # Create program
 $(NAME): $(OBJ) $(LIBFT)
-	@$(CC) $(CFLAGS) $(OBJ) $(LIBFT) $(LDFLAGS) -o $(NAME)
+	@$(CC) $(CFLAGS) $(OBJ) $(LIBFT) -o $(NAME)
 	@echo "\n${GREEN} Created ${NAME} ${DEF_COLOR}\n"
 
 $(LIBFT):
 	@make --no-print-directory -C $(LIBFTDIR)
 
 # Compile .c files into .o files
-%.o: %.c
+$(OBJ_DIR)/%.o: %.c
+	@mkdir -p $(dir $@)
 	@echo "${MAGENTA} ~ ${BROWN} Compiling... ${MAGENTA}-> ${CYAN}$< ${DEF_COLOR}"
 	@$(CC) $(CFLAGS) -c $< -o $@
 
@@ -60,7 +62,7 @@ all: $(NAME)
 
 # Remove .o files
 clean:
-	@rm -f $(OBJ) $(OBJ:.o=.d)
+	@rm -rf $(OBJ) $(OBJ_DIR)
 	@make --no-print-directory -C $(LIBFTDIR) clean
 
 # Remove everything
