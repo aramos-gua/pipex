@@ -86,6 +86,12 @@ int	pipes_init(int ***pipes, int cmd_count)
 	return (0);
 }
 
+static void	ft_perror(t_pipex *pipex, char *str)
+{
+	ft_printf("%s\n", str);
+	pipex->return_val = 1;
+}
+
 int	pipex_init(t_pipex *pipex, int argc, char **argv, char **envp)
 {
 	pipex->heredoc_on = (ft_strncmp(argv[1], "here_doc", 9) == 0);
@@ -101,15 +107,12 @@ int	pipex_init(t_pipex *pipex, int argc, char **argv, char **envp)
 	{
 		pipex->infile = open(argv[1], O_RDONLY);
 		if (pipex->infile < 0)
-			pipex->return_val = 1;
+			ft_perror(pipex, "Error: File1 not found");
 		pipex->outfile = open(argv[argc - 1], O_WRONLY | \
 			O_CREAT | O_TRUNC, 0644);
 		pipex->cmd_count = argc - 3;
 	}
 	if (pipex->outfile < 0)
-	{
-		ft_printf("Error with %s permissions\n", argv[argc - 1]);
-		pipex->return_val = 1;
-	}
+		ft_perror(pipex, "Error with file2 permissions");
 	return (0);
 }
